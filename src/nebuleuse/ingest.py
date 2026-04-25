@@ -10,6 +10,7 @@ import yaml
 
 from . import db, embed
 from .chunker import chunk_text
+from .tokenize import to_index_text
 
 FRONTMATTER_RE_PREFIX = "---\n"
 
@@ -102,6 +103,10 @@ def ingest_all() -> dict:
             conn.execute(
                 "INSERT INTO chunks_vss(rowid, embedding) VALUES (?, ?)",
                 (chunk_id, vec.tobytes()),
+            )
+            conn.execute(
+                "INSERT INTO chunks_fts(rowid, content) VALUES (?, ?)",
+                (chunk_id, to_index_text(chunk.content)),
             )
             stats["chunks"] += 1
 

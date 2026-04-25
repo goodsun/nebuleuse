@@ -56,24 +56,15 @@ CREATE TABLE IF NOT EXISTS chunks (
     UNIQUE(document_id, chunk_index)
 );
 
+-- FTS5 は bigram 前処理済みテキストを自前で保持する（external-content は使わない）。
+-- ingest 側で chunks への INSERT と同時に chunks_fts へ bigram 化テキストを挿入する。
 CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
     content,
-    content='chunks',
-    content_rowid='id',
     tokenize='unicode61 remove_diacritics 2'
 );
 
-CREATE TRIGGER IF NOT EXISTS chunks_ai AFTER INSERT ON chunks BEGIN
-    INSERT INTO chunks_fts(rowid, content) VALUES (new.id, new.content);
-END;
-
 CREATE TRIGGER IF NOT EXISTS chunks_ad AFTER DELETE ON chunks BEGIN
-    INSERT INTO chunks_fts(chunks_fts, rowid, content) VALUES ('delete', old.id, old.content);
-END;
-
-CREATE TRIGGER IF NOT EXISTS chunks_au AFTER UPDATE ON chunks BEGIN
-    INSERT INTO chunks_fts(chunks_fts, rowid, content) VALUES ('delete', old.id, old.content);
-    INSERT INTO chunks_fts(rowid, content) VALUES (new.id, new.content);
+    DELETE FROM chunks_fts WHERE rowid = old.id;
 END;
 
 CREATE VIRTUAL TABLE IF NOT EXISTS chunks_vss USING vss0(
@@ -88,7 +79,7 @@ def init_schema(conn: sqlite3.Connection) -> None:
 
 
 def reset_chunks_for_document(conn: sqlite3.Connection, document_id: int) -> None:
-    """vss は CASCADE 対象外なので手動で削除する。"""
+    """vss は CASCADE 対象外なので手動で削除する。chunks_fts はトリガーで連動。"""
     rows = conn.execute(
         "SELECT id FROM chunks WHERE document_id = ?", (document_id,)
     ).fetchall()

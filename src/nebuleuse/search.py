@@ -1,10 +1,10 @@
 """ベクター + 全文のハイブリッド検索（RRF 統合）。"""
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 
 from . import db, embed
+from .tokenize import to_query
 
 K_INTERMEDIATE = 50
 RRF_K = 60
@@ -30,19 +30,8 @@ def _vss_search(conn, qvec, k: int) -> list[int]:
     return [r["rowid"] for r in rows]
 
 
-_FTS_SAFE = re.compile(r"[^\w぀-ヿ一-鿿]+", re.UNICODE)
-
-
-def _fts_query(query: str) -> str:
-    """FTS5 用にトークンを OR で結ぶ。記号は除去。"""
-    tokens = [t for t in _FTS_SAFE.split(query) if t]
-    if not tokens:
-        return ""
-    return " OR ".join(f'"{t}"' for t in tokens)
-
-
 def _fts_search(conn, query: str, k: int) -> list[int]:
-    fts_q = _fts_query(query)
+    fts_q = to_query(query)
     if not fts_q:
         return []
     try:

@@ -11,6 +11,7 @@ from . import capture as capture_mod
 from . import ingest as ingest_mod
 from . import llm as llm_mod
 from . import search as search_mod
+from . import watch as watch_mod
 
 app = typer.Typer(add_completion=False, no_args_is_help=True, help="Nébuleuse CLI")
 
@@ -101,6 +102,14 @@ def _print_citations(hits):
 def stats():
     """文書数・チャンク数・DB サイズを表示。"""
     typer.echo(json.dumps(search_mod.stats(), ensure_ascii=False, indent=2))
+
+
+@app.command()
+def watch(
+    debounce: float = typer.Option(1.0, "--debounce", help="seconds to coalesce bursts"),
+):
+    """raw/ を監視して自動で ingest する（前面、Ctrl-C で終了）。"""
+    watch_mod.run(debounce=debounce)
 
 
 @app.command()
