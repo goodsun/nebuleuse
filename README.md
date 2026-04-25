@@ -123,7 +123,8 @@ neb serve          # mlx_lm.server を起動（既定 127.0.0.1:8080）
 - launchd で `neb serve` 常駐化
 - Phase 4（任意）：iOS Shortcuts 連携、音声入力、エージェンティックループ、Web UI
 
-**設計ドキュメント:**
+**ドキュメント:**
+- [docs/usage.md](docs/usage.md) —— 使い方ガイド（クイックスタート・コマンドリファレンス・ワークフロー・トラブルシュート）
 - [docs/design.md](docs/design.md) —— 全体設計書
 - [docs/2026-04-24-design-dialogue.md](docs/2026-04-24-design-dialogue.md) —— 技術選定の議事録
 - [docs/2026-04-24-why-nebuleuse.md](docs/2026-04-24-why-nebuleuse.md) —— なぜ作るかの議事録
