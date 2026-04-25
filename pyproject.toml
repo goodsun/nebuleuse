@@ -1,0 +1,29 @@
+[project]
+name = "nebuleuse"
+version = "0.1.0"
+description = "Self-hosted knowledge base with SQLite-based vector + full-text search, driven by a local LLM."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "typer>=0.12",
+    "sqlite-vss>=0.1.2",
+    "sentence-transformers>=3.0",
+    "httpx>=0.27",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+neb = "nebuleuse.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nebuleuse"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
