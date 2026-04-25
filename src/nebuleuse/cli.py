@@ -6,8 +6,10 @@ from typing import Optional
 
 import typer
 
+from . import ask as ask_mod
 from . import capture as capture_mod
 from . import ingest as ingest_mod
+from . import llm as llm_mod
 from . import search as search_mod
 
 app = typer.Typer(add_completion=False, no_args_is_help=True, help="Nébuleuse CLI")
@@ -56,9 +58,74 @@ def search(
 
 
 @app.command()
+def ask(
+    question: str = typer.Argument(...),
+    n: int = typer.Option(6, "-n", "--top", help="context chunks"),
+    no_stream: bool = typer.Option(False, "--no-stream", help="disable streaming"),
+):
+    """検索 → LLM 回答。"""
+    if not llm_mod.health():
+        typer.echo(
+            f"LLM server unreachable at {llm_mod.DEFAULT_BASE_URL}. "
+            "Start it with `neb serve` (in another shell).",
+            err=True,
+        )
+        raise typer.Exit(2)
+
+    if no_stream:
+        ans = ask_mod.ask(question, top_n=n)
+        typer.echo(ans.text)
+        _print_citations(ans.citations)
+        return
+
+    stream, hits = ask_mod.ask_stream(question, top_n=n)
+    for delta in stream:
+        typer.echo(delta, nl=False)
+    typer.echo("")
+    _print_citations(hits)
+
+
+def _print_citations(hits):
+    if not hits:
+        return
+    typer.echo("\n--- 出典 ---")
+    for i, h in enumerate(hits, 1):
+        typer.echo(
+            f"[#{i}] {h.title or h.document_path}  "
+            f"{h.document_path}#{h.chunk_index}"
+            + (f"  ({h.source})" if h.source else "")
+        )
+
+
+@app.command()
 def stats():
     """文書数・チャンク数・DB サイズを表示。"""
     typer.echo(json.dumps(search_mod.stats(), ensure_ascii=False, indent=2))
+
+
+@app.command()
+def serve(
+    port: int = typer.Option(8080, "--port"),
+    host: str = typer.Option("127.0.0.1", "--host"),
+    model: str = typer.Option(llm_mod.DEFAULT_MODEL, "--model"),
+):
+    """mlx_lm.server を前面で起動する（薄いラッパー）。"""
+    import os
+    import sys
+
+    args = [
+        sys.executable,
+        "-m",
+        "mlx_lm.server",
+        "--model",
+        model,
+        "--host",
+        host,
+        "--port",
+        str(port),
+    ]
+    typer.echo(f"$ {' '.join(args)}")
+    os.execvp(args[0], args)
 
 
 if __name__ == "__main__":
