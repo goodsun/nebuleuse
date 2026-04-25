@@ -126,6 +126,7 @@ neb serve          # mlx_lm.server を起動（既定 127.0.0.1:8080）
 **ドキュメント:**
 - [docs/usage.md](docs/usage.md) —— 使い方ガイド（クイックスタート・コマンドリファレンス・ワークフロー・トラブルシュート）
 - [docs/design.md](docs/design.md) —— 全体設計書
+- [docs/todo.md](docs/todo.md) —— TODO / バックログ（設計の穴と未着手の改善項目）
 - [docs/2026-04-24-design-dialogue.md](docs/2026-04-24-design-dialogue.md) —— 技術選定の議事録
 - [docs/2026-04-24-why-nebuleuse.md](docs/2026-04-24-why-nebuleuse.md) —— なぜ作るかの議事録
 
